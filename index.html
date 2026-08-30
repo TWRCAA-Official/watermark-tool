@@ -130,8 +130,10 @@
   #canvas.panning { cursor: grabbing; }
   #canvas[hidden] { display: none; }
 
-  .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; text-align: center; }
+  .empty-state { color: var(--text-muted); font-size: 14px; text-align: center; }
   .empty-state .big { font-size: 34px; }
+  .empty-state-variant { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .empty-state-mobile { display: none; }
 
   .export-bar { display: flex; align-items: center; gap: 16px; padding: 16px 26px; border-top: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
   .export-bar[data-disabled="true"] { opacity: 0.4; pointer-events: none; }
@@ -158,6 +160,8 @@
     .sidebar { width: auto; border-right: none; border-bottom: 1px solid var(--border); max-height: 46vh; }
     .export-bar { justify-content: center; }
     .export-hint { margin-left: 0; width: 100%; text-align: center; }
+    .empty-state-desktop { display: none; }
+    .empty-state-mobile { display: flex; }
   }
 </style>
 
@@ -227,8 +231,14 @@
       <div class="canvas-frame" id="canvasFrame">
         <canvas id="canvas" hidden></canvas>
         <div class="empty-state" id="emptyState">
-          <span class="big">⬅️</span>
-          <span>從左側上傳一張照片開始</span>
+          <div class="empty-state-variant empty-state-desktop">
+            <span class="big">⬅️</span>
+            <span>從左側上傳一張照片開始</span>
+          </div>
+          <div class="empty-state-variant empty-state-mobile">
+            <span class="big">⬆️</span>
+            <span>從上方上傳一張照片開始</span>
+          </div>
         </div>
       </div>
       <div class="export-bar" id="exportBar" data-disabled="true">
