@@ -41,17 +41,19 @@
     margin: 0; padding: 0; background: var(--bg); color: var(--text);
     font-family: "Helvetica Neue", "Noto Sans TC", "PingFang TC", sans-serif;
     -webkit-font-smoothing: antialiased;
+    height: 100%; overflow: hidden;
   }
   ::selection { background: var(--accent-soft); color: var(--text); }
   input, button, textarea { font-family: inherit; color: inherit; }
   button { cursor: pointer; border: 1px solid var(--border); background: var(--surface); }
   :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
-  .app { display: flex; flex-direction: column; min-height: 100vh; }
+  .app { display: flex; flex-direction: column; height: 100dvh; }
 
   .topbar {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     padding: 16px 26px; border-bottom: 1px solid var(--border); background: var(--surface);
+    flex-shrink: 0;
   }
   .brand { display: flex; align-items: center; gap: 13px; }
   .brand-mark {
@@ -116,7 +118,7 @@
 
   .hint-text { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
 
-  .preview-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .preview-area { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
   .canvas-frame {
     flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px;
     background: var(--surface-2); position: relative; min-height: 0; overflow: auto;
@@ -135,7 +137,7 @@
   .empty-state-variant { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .empty-state-mobile { display: none; }
 
-  .export-bar { display: flex; align-items: center; gap: 16px; padding: 16px 26px; border-top: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+  .export-bar { display: flex; align-items: center; gap: 16px; padding: 16px 26px; border-top: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; flex-shrink: 0; }
   .export-bar[data-disabled="true"] { opacity: 0.4; pointer-events: none; }
   .filename-field { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
   .filename-field input { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: 13.5px; width: 180px; color: var(--text); }
@@ -157,7 +159,7 @@
 
   @media (max-width: 900px) {
     .workbench { flex-direction: column; }
-    .sidebar { width: auto; border-right: none; border-bottom: 1px solid var(--border); max-height: 46vh; }
+    .sidebar { width: auto; flex-shrink: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 46%; }
     .export-bar { justify-content: center; }
     .export-hint { margin-left: 0; width: 100%; text-align: center; }
     .empty-state-desktop { display: none; }
