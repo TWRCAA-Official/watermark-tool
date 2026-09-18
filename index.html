@@ -67,6 +67,7 @@
     font-size: 13px; padding: 8px 14px; border-radius: 8px; white-space: nowrap;
   }
   .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-ghost.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
   .workbench { flex: 1; display: flex; gap: 0; min-height: 0; }
 
@@ -243,8 +244,14 @@
 
       <section class="panel" id="panel-official-position" data-disabled="true">
         <h2>3. 調整照片位置</h2>
-        <p class="hint-text">標籤會固定套用在畫面上；照片會依標籤比例自動裁切，可直接在右側預覽圖上拖曳調整位置。</p>
-        <button class="btn-ghost" id="recenterButton" type="button" style="width:fit-content;">重設置中</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-ghost active" id="cropModeCoverBtn" data-crop-mode="cover" type="button">填滿裁切</button>
+          <button class="btn-ghost" id="cropModeContainBtn" data-crop-mode="contain" type="button">完整置中（背景填滿）</button>
+        </div>
+        <div id="cropPositionHint" style="display:flex; flex-direction:column; gap:12px;">
+          <p class="hint-text">標籤會固定套用在畫面上；照片會依標籤比例自動裁切，可直接在右側預覽圖上拖曳調整位置。</p>
+          <button class="btn-ghost" id="recenterButton" type="button" style="width:fit-content;">重設置中</button>
+        </div>
       </section>
 
       <section class="panel" id="panel-logo-size" data-disabled="true" hidden>
@@ -295,6 +302,7 @@
     officialTag: 'fourfive',
     pan: { x: 0, y: 0 },
     logoScale: 0.28,
+    cropMode: 'cover',
   };
 
   let sourceImage = null;
@@ -381,6 +389,7 @@
   function render() {
     if (!sourceImage) return;
     if (state.officialTag === 'fbFull') renderUncropped();
+    else if (state.cropMode === 'contain') renderContainFilled();
     else renderCropped();
   }
 
@@ -393,6 +402,30 @@
 
     const rect = coverRect(sourceImage.naturalWidth, sourceImage.naturalHeight, w, h, state.pan.x, state.pan.y);
     ctx.drawImage(sourceImage, rect.dx, rect.dy, rect.dw, rect.dh);
+
+    if (tag) ctx.drawImage(tag, 0, 0, w, h);
+  }
+
+  function renderContainFilled() {
+    const dims = OFFICIAL_DIMS[state.officialTag] || OFFICIAL_DIMS.fourfive;
+    const w = dims.w, h = dims.h;
+    const tag = currentTagImage();
+    canvas.width = w; canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+
+    // Background: blurred cover-fit fill, ignoring pan, scaled up so blurred edges never show.
+    const bgScale = Math.max(w / sourceImage.naturalWidth, h / sourceImage.naturalHeight) * 1.15;
+    const bgW = sourceImage.naturalWidth * bgScale;
+    const bgH = sourceImage.naturalHeight * bgScale;
+    ctx.filter = 'blur(40px) brightness(0.55)';
+    ctx.drawImage(sourceImage, (w - bgW) / 2, (h - bgH) / 2, bgW, bgH);
+    ctx.filter = 'none';
+
+    // Foreground: contain-fit, always centered, full photo visible, ignores pan.
+    const fgScale = Math.min(w / sourceImage.naturalWidth, h / sourceImage.naturalHeight);
+    const fgW = sourceImage.naturalWidth * fgScale;
+    const fgH = sourceImage.naturalHeight * fgScale;
+    ctx.drawImage(sourceImage, (w - fgW) / 2, (h - fgH) / 2, fgW, fgH);
 
     if (tag) ctx.drawImage(tag, 0, 0, w, h);
   }
@@ -432,6 +465,16 @@
     });
   });
   el('recenterButton').addEventListener('click', () => { state.pan = { x: 0, y: 0 }; render(); });
+
+  function setCropMode(mode) {
+    state.cropMode = mode;
+    el('cropModeCoverBtn').classList.toggle('active', mode === 'cover');
+    el('cropModeContainBtn').classList.toggle('active', mode === 'contain');
+    el('cropPositionHint').style.display = mode === 'contain' ? 'none' : 'flex';
+    render();
+  }
+  el('cropModeCoverBtn').addEventListener('click', () => setCropMode('cover'));
+  el('cropModeContainBtn').addEventListener('click', () => setCropMode('contain'));
   el('logoScaleSlider').addEventListener('input', (e) => {
     state.logoScale = Number(e.target.value) / 100;
     el('logoScaleReadout').textContent = `${e.target.value}%`;
@@ -449,6 +492,7 @@
     return { x: (point.clientX - rect.left) * scaleX, y: (point.clientY - rect.top) * scaleY };
   }
   function startDrag(e) {
+    if (state.cropMode === 'contain') return;
     if (!sourceImage) return;
     e.preventDefault();
     const p = canvasPointFromEvent(e);
